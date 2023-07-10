@@ -39,11 +39,11 @@ migrate-up: $(MIGRATE)
 	migrate  -database $(MYSQL_DSN) -path=./db/migrations up
 
 migrate-down: $(MIGRATE)
-	migrate  -database $(MYSQL_DSN) -path=misc/migrations down 1
+	migrate  -database $(MYSQL_DSN) -path=./db/migrations down 1
 
 migrate-drop: $(MIGRATE)
-	migrate  -database $(MYSQL_DSN) -path=misc/migrations drop
+	migrate  -database $(MYSQL_DSN) -path=./db/migrations drop
 
 migrate-create: $(MIGRATE) ## Create a set of up/down migrations with a specified name.
 	@ read -p "Please provide name for the migration: " Name; \
-	migrate create -ext sql -dir misc/migrations $${Name}
+	migrate create -ext sql -dir ./db/migrations $${Name}
