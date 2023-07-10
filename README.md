@@ -13,7 +13,7 @@ Golangを使用してWebアプリケーション用のAPIを実装
   - [API追加方法](#api追加方法)
     - [1. migration追加](#1-migration追加)
     - [2. domain,usecase,repository,delivery追加](#2-domainusecaserepositorydelivery追加)
-    - [3. 実行](#3-実行)
+    - [3. main.go追加](#3-maingo追加)
   - [対応予定](#対応予定)
   - [Reference](#reference)
 
@@ -100,7 +100,13 @@ $ go mod tidy
 ### 1. migration追加
 
 ```
+// マイグレーションファイル作成
 $ make migrate-create
+
+// -- テーブル指定とファイルの中身追加
+
+// マイグレーション実行
+$ make migrate-up
 ```
 
 ### 2. domain,usecase,repository,delivery追加
@@ -110,10 +116,13 @@ $ make migrate-create
 * repository: DBデータ関連
 * domain: データ構成
 
-### 3. 実行
+### 3. main.go追加
 
 ```
-$ make run
+albumRepository := repository.NewAlbumRepository(db)
+albumUseCase := usecase.NewAlbumUseCase(albumRepository)
+albumHandler := httpHandler.NewAlbumHandler(albumUseCase)
+httpRouter.SetupAlbumRouter(router, albumHandler)
 ```
 
 ## 対応予定
