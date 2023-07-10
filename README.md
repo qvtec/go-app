@@ -8,6 +8,8 @@ Golangを使用してWebアプリケーション用のAPIを実装
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Features](#features)
+    - [Project structure](#project-structure)
   - [Reference](#reference)
 
 ## Installation
@@ -38,7 +40,6 @@ $ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "em
 
 // DELETE
 $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
-```
 ```
 
 ## Features
