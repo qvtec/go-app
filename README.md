@@ -10,6 +10,11 @@ Golangを使用してWebアプリケーション用のAPIを実装
   - [Usage](#usage)
   - [Features](#features)
     - [Project structure](#project-structure)
+  - [API追加方法](#api追加方法)
+    - [1. migration追加](#1-migration追加)
+    - [2. domain,usecase,repository,delivery追加](#2-domainusecaserepositorydelivery追加)
+    - [3. 実行](#3-実行)
+  - [対応予定](#対応予定)
   - [Reference](#reference)
 
 ## Installation
@@ -89,6 +94,34 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 $ go mod tidy
 ```
+
+## API追加方法
+
+### 1. migration追加
+
+```
+$ make migrate-create
+```
+
+### 2. domain,usecase,repository,delivery追加
+
+* delivery: ルーターとコントローラ呼び出し
+* usecase: ビジネスロジック
+* repository: DBデータ関連
+* domain: データ構成
+
+### 3. 実行
+
+```
+$ make run
+```
+
+## 対応予定
+
+- [ ] バリデーション
+- [ ] ログ
+- [ ] テスト
+- [ ] 認証
 
 ## Reference
 
