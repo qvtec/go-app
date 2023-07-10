@@ -4,7 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"qvtec/go-app/internal/delivery"
+	httpHandler "qvtec/go-app/internal/delivery/http/handler"
+	httpRouter "qvtec/go-app/internal/delivery/http/router"
 	"qvtec/go-app/internal/repository"
 	"qvtec/go-app/internal/usecase"
 	"qvtec/go-app/pkg/db"
@@ -20,10 +21,10 @@ func main() {
 
 	userRepository := repository.NewUserRepository(db)
 	userUseCase := usecase.NewUserUseCase(userRepository)
-	userHandler := delivery.NewUserHandler(userUseCase)
+	userHandler := httpHandler.NewUserHandler(userUseCase)
 
 	router := gin.Default()
-	delivery.SetupUserRouter(router, userHandler)
+	httpRouter.SetupUserRouter(router, userHandler)
 
 	http.ListenAndServe(":8080", router)
 }

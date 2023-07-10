@@ -28,7 +28,7 @@ clean:
 	@docker-compose -f build/docker-compose.yml down -v --rmi all
 
 run:
-	@go run ./cmd/main.go
+	go run ./cmd/main.go
 
 .PHONY: build up down clean db run
 

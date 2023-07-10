@@ -1,10 +1,12 @@
-package delivery
+package router
 
 import (
+	"qvtec/go-app/internal/delivery/http/handler"
+
 	"github.com/gin-gonic/gin"
 )
 
-func SetupUserRouter(router *gin.Engine, userHandler *UserHandler) {
+func SetupUserRouter(router *gin.Engine, userHandler *handler.UserHandler) {
 	v1 := router.Group("/api/v1")
 
 	v1.GET("/users", userHandler.GetAll)

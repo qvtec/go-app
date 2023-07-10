@@ -8,8 +8,6 @@ Golangを使用してWebアプリケーション用のAPIを実装
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
-  - [Features](#features)
-    - [Project structure](#project-structure)
   - [Reference](#reference)
 
 ## Installation
@@ -25,7 +23,22 @@ $ make migrate-up
 
 ```
 $ make run
-$ curl localhost:8080/api/v1/users
+
+// ALL
+$ curl http://localhost:8080/api/v1/users
+
+// CREATE
+$ curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "email": "john@example.com"}' http://localhost:8080/api/v1/users
+
+// GetByID
+$ curl http://localhost:8080/api/v1/users/{user_id}
+
+// UPDATE
+$ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "email": "john.smith@example.com"}' http://localhost:8080/api/v1/users/{user_id}
+
+// DELETE
+$ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
+```
 ```
 
 ## Features
@@ -43,6 +56,7 @@ $ curl localhost:8080/api/v1/users
   - domain                      // Entities
     - user.go
     - album.go
+    - error.go
   - usecase                     // Use cases
     - user_usecase.go
     - album_usecase.go
@@ -55,7 +69,8 @@ $ curl localhost:8080/api/v1/users
       - handler
         - user_handler.go
         - album_handler.go
-      - router.go
+      - router
+        - user_router.go
 - pkg
   - db
     - mysql
@@ -72,24 +87,6 @@ $ curl localhost:8080/api/v1/users
 
 ```
 $ go mod tidy
-$ make run
-```
-
-```
-// ALL
-$ curl http://localhost:8080/api/v1/users
-
-// CREATE
-$ curl -X POST -H "Content-Type: application/json" -d '{"name": "John Doe", "email": "john@example.com"}' http://localhost:8080/api/v1/users
-
-// GetByID
-$ curl http://localhost:8080/api/v1/users/{user_id}
-
-// UPDATE
-$ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "email": "john.smith@example.com"}' http://localhost:8080/api/v1/users/{user_id}
-
-// DELETE
-$ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 
 ## Reference
