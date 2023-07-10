@@ -19,12 +19,17 @@ func main() {
 		log.Fatal(err)
 	}
 
+	router := gin.Default()
+
 	userRepository := repository.NewUserRepository(db)
 	userUseCase := usecase.NewUserUseCase(userRepository)
 	userHandler := httpHandler.NewUserHandler(userUseCase)
-
-	router := gin.Default()
 	httpRouter.SetupUserRouter(router, userHandler)
+
+	albumRepository := repository.NewAlbumRepository(db)
+	albumUseCase := usecase.NewAlbumUseCase(albumRepository)
+	albumHandler := httpHandler.NewAlbumHandler(albumUseCase)
+	httpRouter.SetupAlbumRouter(router, albumHandler)
 
 	http.ListenAndServe(":8080", router)
 }
