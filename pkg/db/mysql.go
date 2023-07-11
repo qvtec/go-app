@@ -2,6 +2,8 @@ package db
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -11,8 +13,16 @@ type MySQLDB struct {
 }
 
 func NewMySQLDB() (*MySQLDB, error) {
-	db, err := sql.Open("mysql", "user:password@tcp(localhost:3306)/docker")
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	dbName := os.Getenv("DATABASE_NAME")
+	user := os.Getenv("DATABASE_USER")
+	password := os.Getenv("DATABASE_PASSWORD")
+	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, password, host, port, dbName)
+
+	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
+		fmt.Println("Failed to connect to MySQL:", err)
 		return nil, err
 	}
 
