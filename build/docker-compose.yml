@@ -35,5 +35,12 @@ services:
       - mysql_data:/var/lib/mysql
       - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
 
+  migrate:
+    image: migrate/migrate:v4.16.2
+    volumes:
+      - ../db/migrations:/migrations
+    depends_on:
+      - mysql
+
 volumes:
   mysql_data:

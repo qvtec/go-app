@@ -1,20 +1,21 @@
-# GO API
+# GO APP
 
-Golangを使用してWebアプリケーション用のAPIを実装
+GolangでクリーンアーキテクチャのAPIを実装してみる
 
 ## Table of Contents
 
-- [GO API](#go-api)
+- [GO APP](#go-app)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Usage](#usage)
   - [Features](#features)
     - [Project structure](#project-structure)
-  - [API追加方法](#api追加方法)
-    - [1. migration追加](#1-migration追加)
-    - [2. domain,usecase,repository,delivery追加](#2-domainusecaserepositorydelivery追加)
-    - [3. main.go追加](#3-maingo追加)
-  - [対応予定](#対応予定)
+  - [Packages](#packages)
+  - [How to add new API](#how-to-add-new-api)
+    - [1. migration](#1-migration)
+    - [2. domain,usecase,repository,delivery](#2-domainusecaserepositorydelivery)
+    - [3. main.go](#3-maingo)
+  - [Todo](#todo)
   - [Reference](#reference)
 
 ## Installation
@@ -22,8 +23,10 @@ Golangを使用してWebアプリケーション用のAPIを実装
 ```
 $ git clone git@github.com:qvtec/go-app.git
 $ cd go-app
-$ make up
+$ cp ./build/.env.example ./build/.env
+$ make build
 $ make migrate-up
+$ make run
 ```
 
 ## Usage
@@ -48,6 +51,11 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 
 ## Features
+
+* hot reload: air
+* auth: jwt
+* test: testify
+* mock: mockery
 
 ### Project structure
 
@@ -95,28 +103,33 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 $ go mod tidy
 ```
 
-## API追加方法
+## Packages
 
-### 1. migration追加
+* gin-gonic/gin
+* go-sql-driver/mysql
+
+## How to add new API
+
+### 1. migration
 
 ```
-// マイグレーションファイル作成
+// Create up/down migration files
 $ make migrate-create
 
-// -- テーブル指定とファイルの中身追加
+// -- Add SQL
 
-// マイグレーション実行
+// Run migrate
 $ make migrate-up
 ```
 
-### 2. domain,usecase,repository,delivery追加
+### 2. domain,usecase,repository,delivery
 
 * delivery: ルーターとコントローラ呼び出し
 * usecase: ビジネスロジック
 * repository: DBデータ関連
 * domain: データ構成
 
-### 3. main.go追加
+### 3. main.go
 
 ```
 albumRepository := repository.NewAlbumRepository(db)
@@ -125,12 +138,12 @@ albumHandler := httpHandler.NewAlbumHandler(albumUseCase)
 httpRouter.SetupAlbumRouter(router, albumHandler)
 ```
 
-## 対応予定
+## Todo
 
-- [ ] バリデーション
-- [ ] ログ
-- [ ] テスト
-- [ ] 認証
+- [ ] validation
+- [ ] log
+- [ ] test
+- [ ] auth
 
 ## Reference
 
