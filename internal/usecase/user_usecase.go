@@ -1,8 +1,8 @@
 package usecase
 
 import (
-	"qvtec/go-app/internal/domain"
-	"qvtec/go-app/internal/repository"
+	"github.com/qvtec/go-app/internal/domain"
+	"github.com/qvtec/go-app/internal/repository"
 )
 
 type UserUseCase interface {

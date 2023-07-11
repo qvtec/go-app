@@ -1,7 +1,7 @@
 package router
 
 import (
-	"qvtec/go-app/internal/delivery/http/handler"
+	"github.com/qvtec/go-app/internal/delivery/http/handler"
 
 	"github.com/gin-gonic/gin"
 )

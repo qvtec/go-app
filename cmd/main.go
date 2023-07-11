@@ -4,11 +4,11 @@ import (
 	"log"
 	"net/http"
 
-	httpHandler "qvtec/go-app/internal/delivery/http/handler"
-	httpRouter "qvtec/go-app/internal/delivery/http/router"
-	"qvtec/go-app/internal/repository"
-	"qvtec/go-app/internal/usecase"
-	"qvtec/go-app/pkg/db"
+	httpHandler "github.com/qvtec/go-app/internal/delivery/http/handler"
+	httpRouter "github.com/qvtec/go-app/internal/delivery/http/router"
+	"github.com/qvtec/go-app/internal/repository"
+	"github.com/qvtec/go-app/internal/usecase"
+	"github.com/qvtec/go-app/pkg/db"
 
 	"github.com/gin-gonic/gin"
 )

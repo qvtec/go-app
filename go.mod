@@ -1,4 +1,4 @@
-module qvtec/go-app
+module github.com/qvtec/go-app
 
 go 1.19
 

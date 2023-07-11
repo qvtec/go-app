@@ -2,9 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"qvtec/go-app/internal/domain"
-	"qvtec/go-app/internal/usecase"
 	"strconv"
+
+	"github.com/qvtec/go-app/internal/domain"
+	"github.com/qvtec/go-app/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

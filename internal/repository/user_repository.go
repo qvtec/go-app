@@ -2,9 +2,10 @@ package repository
 
 import (
 	"database/sql"
-	"qvtec/go-app/internal/domain"
-	"qvtec/go-app/pkg/db"
 	"time"
+
+	"github.com/qvtec/go-app/internal/domain"
+	"github.com/qvtec/go-app/pkg/db"
 )
 
 type UserRepository interface {
