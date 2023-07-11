@@ -1,7 +1,7 @@
-FROM golang:1.20
+FROM golang:1.20-alpine
 
-# "golang-migrate"のインストール
-RUN go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN apk update &&  apk add git
+RUN go install github.com/cosmtrek/air@v1.44.0
 
 WORKDIR /app
 
@@ -11,4 +11,6 @@ RUN go mod download && go mod verify
 COPY ../../  ./
 RUN go build -o main ./cmd/main.go
 
-CMD ["./main"]
+EXPOSE 8088
+
+CMD ["air", "-c", ".air.toml"]
