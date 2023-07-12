@@ -1,8 +1,9 @@
-# Docker //////////////////////////////////////////////////////////////////////////////////////
+# Docker ////////////////////////////////////////////////////////////////////////////
 build:
-	@docker-compose -f build/docker-compose.yml up -d --build mysql
+	@docker-compose -f build/docker-compose.yml build mysql
 
 run:
+	@docker-compose -f build/docker-compose.yml up -d mysql
 	@docker-compose -f build/docker-compose.yml up app
 
 down:
@@ -13,7 +14,18 @@ clean:
 
 .PHONY: build run down clean
 
-# Database Migrations //////////////////////////////////////////////////////////////////////////
+# Test //////////////////////////////////////////////////////////////////////////////
+GO := docker-compose -f build/docker-compose.yml run app go
+
+.PHONY: test
+
+test:
+	$(GO) test -cover -coverprofile=coverage.out ./...
+
+coverage:
+	$(GO) tool cover -html=coverage.out -o coverage.html
+
+# Database Migrations ////////////////////////////////////////////////////////////////
 include ./build/.env
 MYSQL_DSN := "mysql://${DB_USER}:${DB_PASS}@tcp(mysql:${DB_PORT})/${DB_NAME}"
 MIGRATE := docker-compose -f build/docker-compose.yml run migrate -path=/migrations/ -database $(MYSQL_DSN)

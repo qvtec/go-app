@@ -7,7 +7,7 @@ CREATE TABLE `users` (
     `email_verified` DATETIME(3) NULL,
     `image` VARCHAR(191) NULL,
     `created_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updated_at` DATETIME(3) NOT NULL,
+    `updated_at` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `deleted_at` DATETIME(3) NULL,
     UNIQUE INDEX `users_email_key`(`email`),
     PRIMARY KEY (`id`)

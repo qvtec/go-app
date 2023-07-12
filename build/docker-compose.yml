@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   app:
+    container_name: go_app_api
     build:
       context: ../
       dockerfile: ./build/server/Dockerfile
@@ -22,6 +23,7 @@ services:
 
   mysql:
     image: mysql:8.0.32
+    container_name: go_app_mysql
     restart: always
     ports:
       - ${DB_PORT}:3306
@@ -36,7 +38,8 @@ services:
       - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
 
   migrate:
-    image: migrate/migrate:v4.16.2
+    image: migrate/migrate
+    container_name: migrate
     volumes:
       - ../db/migrations:/migrations
     depends_on:

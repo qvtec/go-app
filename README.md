@@ -26,7 +26,6 @@ $ cd go-app
 $ cp ./build/.env.example ./build/.env
 $ make build
 $ make migrate-up
-$ make run
 ```
 
 ## Usage
@@ -50,12 +49,10 @@ $ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "em
 $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 
-## Features
+* go: `docker-compose -f build/docker-compose.yml exec app sh`
+* mysql: `docker-compose -f build/docker-compose.yml exec mysql sh`
 
-* hot reload: air
-* auth: jwt
-* test: testify
-* mock: mockery
+## Features
 
 ### Project structure
 
@@ -76,8 +73,9 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
     - album_usecase.go
   - repository                  // Interface
     - user_repository.go
+    - user_repository_test.go
     - album_repository.go
-    - common_repository.go
+    - album_repository_test.go
   - delivery                    // Frameworks & Drivers
     - http
       - handler
@@ -107,6 +105,11 @@ $ go mod tidy
 
 * gin-gonic/gin
 * go-sql-driver/mysql
+
+* hot reload: air
+* auth: jwt
+* test: testify
+* mock: mockery
 
 ## How to add new API
 

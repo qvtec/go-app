@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/qvtec/go-app/internal/domain"
-	"github.com/qvtec/go-app/pkg/db"
 )
 
 type UserRepository interface {
@@ -17,10 +16,10 @@ type UserRepository interface {
 }
 
 type mysqlUserRepository struct {
-	DB *db.MySQLDB
+	DB *sql.DB
 }
 
-func NewUserRepository(db *db.MySQLDB) UserRepository {
+func NewUserRepository(db *sql.DB) UserRepository {
 	return &mysqlUserRepository{
 		DB: db,
 	}
@@ -56,7 +55,7 @@ func (r *mysqlUserRepository) Create(user *domain.User) error {
 	user.CreatedAt = currentTime
 	user.UpdatedAt = currentTime
 	query := "INSERT INTO users (name, email, created_at, updated_at) VALUES (?, ?, ?, ?)"
-	result, err := r.DB.Execute(query, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
+	result, err := r.DB.Exec(query, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
 	if err != nil {
 		return err
 	}
@@ -90,7 +89,7 @@ func (r *mysqlUserRepository) Update(user *domain.User) error {
 	currentTime := time.Now().UTC()
 	user.UpdatedAt = currentTime
 	query := "UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?"
-	_, err := r.DB.Execute(query, user.Name, user.Email, user.UpdatedAt, user.ID)
+	_, err := r.DB.Exec(query, user.Name, user.Email, user.UpdatedAt, user.ID)
 	if err != nil {
 		return err
 	}
@@ -100,7 +99,7 @@ func (r *mysqlUserRepository) Update(user *domain.User) error {
 
 func (r *mysqlUserRepository) Delete(id int) error {
 	query := "DELETE FROM users WHERE id = ?"
-	_, err := r.DB.Execute(query, id)
+	_, err := r.DB.Exec(query, id)
 	if err != nil {
 		return err
 	}
