@@ -1,45 +1,34 @@
 # Docker ////////////////////////////////////////////////////////////////////////////
 build:
-	@docker-compose -f build/docker-compose.yml build mysql
-
+	docker compose build mysql
 run:
-	@docker-compose -f build/docker-compose.yml up -d mysql
-	@docker-compose -f build/docker-compose.yml up app
-
+	docker compose up -d mysql
+	docker compose up app
 down:
-	@docker-compose -f build/docker-compose.yml down
-
+	docker compose down
 clean:
-	@docker-compose -f build/docker-compose.yml down -v --rmi all
-
-.PHONY: build run down clean
+	docker compose down -v --rmi all
 
 # Test //////////////////////////////////////////////////////////////////////////////
-GO := docker-compose -f build/docker-compose.yml run app go
-
-.PHONY: test
+GO := docker compose run app go
 
 test:
 	$(GO) test -cover -coverprofile=coverage.out ./...
-
 coverage:
 	$(GO) tool cover -html=coverage.out -o coverage.html
 
 # Database Migrations ////////////////////////////////////////////////////////////////
-include ./build/.env
+include .env
 MYSQL_DSN := "mysql://${DB_USER}:${DB_PASS}@tcp(mysql:${DB_PORT})/${DB_NAME}"
-MIGRATE := docker-compose -f build/docker-compose.yml run migrate -path=/migrations/ -database $(MYSQL_DSN)
+MIGRATE := docker compose run migrate -path=/migrations/ -database $(MYSQL_DSN)
 
 migrate-up:
 	$(MIGRATE) up
-
 migrate-down:
 	$(MIGRATE) down
-
 migrate-reset:
 	$(MIGRATE) drop
 	$(MIGRATE) up
-
 migrate-create: ## Create a set of up/down migrations with a specified name.
 	@ read -p "Enter the name of the new migration: " Name; \
 	$(MIGRATE) create -ext sql -dir ./db/migrations/ $${Name}

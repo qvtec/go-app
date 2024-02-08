@@ -49,8 +49,8 @@ $ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "em
 $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 
-* go: `docker-compose -f build/docker-compose.yml exec app sh`
-* mysql: `docker-compose -f build/docker-compose.yml exec mysql sh`
+* go: `docker compose exec app sh`
+* mysql: `docker compose exec mysql sh`
 
 ## Features
 

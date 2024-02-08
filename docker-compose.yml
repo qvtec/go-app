@@ -1,17 +1,16 @@
-version: '3.7'
+volumes:
+  mysql_data:
 
 services:
   app:
-    container_name: go_app_api
     build:
-      context: ../
+      context: .
       dockerfile: ./build/server/Dockerfile
-    restart: unless-stopped
     tty: true
     ports:
       - ${SERVER_PORT}:8080
     volumes:
-      - ..:/app
+      - .:/app
     environment:
       - DATABASE_HOST=mysql
       - DATABASE_PORT=${DB_PORT}
@@ -23,27 +22,21 @@ services:
 
   mysql:
     image: mysql:8.0.32
-    container_name: go_app_mysql
-    restart: always
     ports:
       - ${DB_PORT}:3306
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: ${DB_NAME}
-      MYSQL_USER: ${DB_USER}
-      MYSQL_PASSWORD: ${DB_PASS}
-      TZ: ${TZ}
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+      - TZ=${TZ}
     volumes:
       - mysql_data:/var/lib/mysql
-      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./build/db/my.cnf:/etc/mysql/conf.d/my.cnf
 
   migrate:
     image: migrate/migrate
-    container_name: migrate
     volumes:
-      - ../db/migrations:/migrations
+      - ./db/migrations:/migrations
     depends_on:
       - mysql
-
-volumes:
-  mysql_data:
