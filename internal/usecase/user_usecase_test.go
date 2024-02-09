@@ -9,136 +9,134 @@ import (
 
 	"github.com/qvtec/go-app/internal/domain"
 	"github.com/qvtec/go-app/internal/usecase"
+	"github.com/qvtec/go-app/mocks"
 )
 
-type mockUserRepository struct {
-	mock.Mock
-}
-
-func (m *mockUserRepository) GetAll() ([]*domain.User, error) {
-	args := m.Called()
-	return args.Get(0).([]*domain.User), args.Error(1)
-}
-
-func (m *mockUserRepository) Create(user *domain.User) error {
-	args := m.Called(user)
-	return args.Error(0)
-}
-
-func (m *mockUserRepository) GetByID(id int) (*domain.User, error) {
-	args := m.Called(id)
-	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-func (m *mockUserRepository) Update(user *domain.User) error {
-	args := m.Called(user)
-	return args.Error(0)
-}
-
-func (m *mockUserRepository) Delete(id int) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func TestUserUseCase_GetAll(t *testing.T) {
-	mockRepo := new(mockUserRepository)
+func setupMock() (*mocks.UserRepository, []*domain.User) {
+	mockRepo := new(mocks.UserRepository)
 
 	mockUsers := []*domain.User{
 		{
+			ID:    1,
 			Name:  "John Doe",
 			Email: "john@example.com",
 		},
 		{
+			ID:    2,
 			Name:  "Jane Smith",
 			Email: "jane@example.com",
 		},
 	}
-	mockRepo.On("GetAll").Return(mockUsers, nil)
 
-	userUC := usecase.NewUserUseCase(mockRepo)
+	return mockRepo, mockUsers
+}
 
-	// GetAll
-	users, err := userUC.GetAll()
-	assert.NoError(t, err)
-	assert.NotNil(t, users)
-	assert.Len(t, users, 2)
-	assert.Equal(t, mockUsers, users)
+func TestUserUseCase_GetAll(t *testing.T) {
+	mockRepo, mockUsers := setupMock()
 
-	mockRepo.AssertExpectations(t)
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.On("GetAll").Return(mockUsers, nil).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		users, err := uc.GetAll()
+		assert.NoError(t, err)
+		assert.NotNil(t, users)
+		assert.Len(t, users, len(mockUsers))
+		mockRepo.AssertExpectations(t)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockRepo.On("GetAll").Return(nil, errors.New("failed to fetch")).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		users, err := uc.GetAll()
+		assert.Error(t, err)
+		assert.Nil(t, users)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUserUseCase_Create(t *testing.T) {
-	mockRepo := new(mockUserRepository)
+	mockRepo, mockUsers := setupMock()
+	mockUser := mockUsers[0]
 
-	user := &domain.User{
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockRepo.On("Create", user).Return(nil)
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.On("Create", mock.Anything).Return(nil).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Create(mockUser)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 
-	userUC := usecase.NewUserUseCase(mockRepo)
-
-	// Create
-	err := userUC.Create(user)
-	assert.NoError(t, err)
-
-	mockRepo.AssertExpectations(t)
+	t.Run("Error", func(t *testing.T) {
+		mockRepo.On("Create", mock.Anything).Return(errors.New("user not found")).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Create(mockUser)
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUserUseCase_GetByID(t *testing.T) {
-	mockRepo := new(mockUserRepository)
+	mockRepo, mockUsers := setupMock()
+	mockUser := mockUsers[0]
 
-	mockUser := &domain.User{
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockRepo.On("GetByID", mock.AnythingOfType("int")).Return(mockUser, nil)
-	mockRepo.On("GetByID", mock.AnythingOfType("int")).Return(nil, errors.New("user not found"))
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.On("GetByID", mock.Anything).Return(mockUser, nil).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		user, err := uc.GetByID(mockUser.ID)
+		assert.NoError(t, err)
+		assert.NotNil(t, user)
+		assert.Equal(t, mockUser, user)
+		mockRepo.AssertExpectations(t)
+	})
 
-	userUC := usecase.NewUserUseCase(mockRepo)
-
-	// GetByID（存在するユーザの場合）
-	fetchedUser, err := userUC.GetByID(mockUser.ID)
-	assert.NoError(t, err)
-	assert.NotNil(t, fetchedUser)
-	assert.Equal(t, mockUser, fetchedUser)
-
-	// GetByID（存在しないユーザの場合）
-	// fetchedUser, err = userUC.GetByID(100)
-	// assert.Error(t, err)
-	// assert.Nil(t, fetchedUser)
-
-	mockRepo.AssertExpectations(t)
+	t.Run("Error", func(t *testing.T) {
+		mockRepo.On("GetByID", mock.Anything).Return(nil, errors.New("user not found")).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		user, err := uc.GetByID(mockUser.ID)
+		assert.Error(t, err)
+		assert.Nil(t, user)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUserUseCase_Update(t *testing.T) {
-	mockRepo := new(mockUserRepository)
+	mockRepo, mockUsers := setupMock()
+	mockUser := mockUsers[0]
 
-	user := &domain.User{
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockRepo.On("Update", user).Return(nil)
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.On("Update", mock.Anything).Return(nil).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Update(mockUser)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 
-	userUC := usecase.NewUserUseCase(mockRepo)
-
-	// Update
-	err := userUC.Update(user)
-	assert.NoError(t, err)
-
-	mockRepo.AssertExpectations(t)
+	t.Run("Error", func(t *testing.T) {
+		mockRepo.On("Update", mock.Anything).Return(errors.New("user not found")).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Update(mockUser)
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }
 
 func TestUserUseCase_Delete(t *testing.T) {
-	mockRepo := new(mockUserRepository)
+	mockRepo, mockUsers := setupMock()
+	mockUser := mockUsers[0]
 
-	mockRepo.On("Delete", mock.AnythingOfType("int")).Return(nil)
+	t.Run("Success", func(t *testing.T) {
+		mockRepo.On("Delete", mock.Anything).Return(nil).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Delete(mockUser.ID)
+		assert.NoError(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 
-	userUC := usecase.NewUserUseCase(mockRepo)
-
-	// Delete
-	err := userUC.Delete(1)
-	assert.NoError(t, err)
-
-	mockRepo.AssertExpectations(t)
+	t.Run("Error", func(t *testing.T) {
+		mockRepo.On("Delete", mock.Anything).Return(errors.New("user not found")).Once()
+		uc := usecase.NewUserUseCase(mockRepo)
+		err := uc.Delete(mockUser.ID)
+		assert.Error(t, err)
+		mockRepo.AssertExpectations(t)
+	})
 }

@@ -5,34 +5,33 @@ GolangでクリーンアーキテクチャのAPIを実装してみる
 ## Table of Contents
 
 - [GO APP](#go-app)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Usage](#usage)
-  - [Features](#features)
-    - [Project structure](#project-structure)
-  - [Packages](#packages)
-  - [How to add new API](#how-to-add-new-api)
-    - [1. migration](#1-migration)
-    - [2. domain,usecase,repository,delivery](#2-domainusecaserepositorydelivery)
-    - [3. main.go](#3-maingo)
-  - [Todo](#todo)
-  - [Reference](#reference)
+	- [Table of Contents](#table-of-contents)
+	- [Installation](#installation)
+	- [Usage](#usage)
+		- [test](#test)
+	- [Features](#features)
+		- [Project structure](#project-structure)
+	- [Packages](#packages)
+	- [How to add new API](#how-to-add-new-api)
+		- [1. migration](#1-migration)
+		- [2. domain,usecase,repository,delivery](#2-domainusecaserepositorydelivery)
+		- [3. main.go](#3-maingo)
+	- [Todo](#todo)
+	- [Reference](#reference)
 
 ## Installation
 
 ```
 $ git clone git@github.com:qvtec/go-app.git
 $ cd go-app
-$ cp ./build/.env.example ./build/.env
-$ make build
+$ cp .env.example .env
+$ make up
 $ make migrate-up
 ```
 
 ## Usage
 
 ```
-$ make run
-
 // ALL
 $ curl http://localhost:8080/api/v1/users
 
@@ -49,8 +48,11 @@ $ curl -X PUT -H "Content-Type: application/json" -d '{"name": "John Smith", "em
 $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 ```
 
-* go: `docker compose exec app sh`
-* mysql: `docker compose exec mysql sh`
+### test
+
+```
+$ make test
+```
 
 ## Features
 
@@ -58,9 +60,11 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
 
 ```
 - build
-  - server
+  - go
     - Dockerfile
-  - docker-compose.yml
+  - mysql
+    - initdb.d
+    - my.cnf
 - cmd
   - main.go
 - internal
@@ -80,9 +84,12 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
     - http
       - handler
         - user_handler.go
+        - user_handler_test.go
         - album_handler.go
+        - album_handler_test.go
       - router
         - user_router.go
+        - album_router.go
 - pkg
   - db
     - mysql
@@ -91,6 +98,9 @@ $ curl -X DELETE http://localhost:8080/api/v1/users/{user_id}
   - migrations
       - 001_create_user_table.up.sql
       - 001_create_user_table.down.sql
+- .env
+- .env.example
+- docker-compose.yml
 - go.mod
 - go.sum
 - Makefile
@@ -122,7 +132,7 @@ $ make migrate-create
 // -- Add SQL
 
 // Run migrate
-$ make migrate-up
+$ make migrate
 ```
 
 ### 2. domain,usecase,repository,delivery
@@ -145,7 +155,6 @@ httpRouter.SetupAlbumRouter(router, albumHandler)
 
 - [ ] validation
 - [ ] log
-- [ ] test
 - [ ] auth
 
 ## Reference

@@ -9,6 +9,23 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestMain(m *testing.M) {
+	host := os.Getenv("DATABASE_HOST")
+	port := os.Getenv("DATABASE_PORT")
+	dbName := os.Getenv("DATABASE_NAME")
+	user := os.Getenv("DATABASE_USER")
+	password := os.Getenv("DATABASE_PASSWORD")
+
+	os.Setenv("DATABASE_NAME", "testing")
+	m.Run()
+
+	os.Setenv("DATABASE_HOST", host)
+	os.Setenv("DATABASE_PORT", port)
+	os.Setenv("DATABASE_NAME", dbName)
+	os.Setenv("DATABASE_USER", user)
+	os.Setenv("DATABASE_PASSWORD", password)
+}
+
 func TestNewMySQLDB(t *testing.T) {
 	password := os.Getenv("DATABASE_PASSWORD")
 

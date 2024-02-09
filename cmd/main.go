@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	httpHandler "github.com/qvtec/go-app/internal/delivery/http/handler"
 	httpRouter "github.com/qvtec/go-app/internal/delivery/http/router"
@@ -26,5 +27,6 @@ func main() {
 	router := gin.Default()
 	httpRouter.SetupUserRouter(router, userHandler)
 
-	http.ListenAndServe(":8080", router)
+	port := os.Getenv("SERVER_PORT")
+	http.ListenAndServe(":" + port, router)
 }

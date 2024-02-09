@@ -51,35 +51,43 @@ func (r *mysqlUserRepository) GetAll() ([]*domain.User, error) {
 }
 
 func (r *mysqlUserRepository) Create(user *domain.User) error {
-	currentTime := time.Now().UTC()
-	user.CreatedAt = currentTime
-	user.UpdatedAt = currentTime
-	query := "INSERT INTO users (name, email, created_at, updated_at) VALUES (?, ?, ?, ?)"
-	result, err := r.DB.Exec(query, user.Name, user.Email, user.CreatedAt, user.UpdatedAt)
+	query := "INSERT INTO users (name, email) VALUES (?, ?)"
+	result, err := r.DB.Exec(query, user.Name, user.Email)
 	if err != nil {
 		return err
 	}
 
 	userID, err := result.LastInsertId()
-	if err != nil {
-		return err
-	}
 	user.ID = int(userID)
 
 	return nil
 }
 
 func (r *mysqlUserRepository) GetByID(id int) (*domain.User, error) {
-	query := "SELECT id, name, email FROM users WHERE id = ?"
+	query := "SELECT * FROM users WHERE id = ?"
 	row := r.DB.QueryRow(query, id)
 
 	user := &domain.User{}
-	err := row.Scan(&user.ID, &user.Name, &user.Email)
+	var createdAt, updatedAt, deletedAt sql.NullString
+	err := row.Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&createdAt,
+		&updatedAt,
+		&deletedAt,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, domain.ErrUserNotFound
 		}
 		return nil, err
+	}
+
+	user.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt.String)
+	user.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAt.String)
+	if deletedAt.Valid {
+		user.DeletedAt, _ = time.Parse("2006-01-02 15:04:05", deletedAt.String)
 	}
 
 	return user, nil
@@ -89,19 +97,30 @@ func (r *mysqlUserRepository) Update(user *domain.User) error {
 	currentTime := time.Now().UTC()
 	user.UpdatedAt = currentTime
 	query := "UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?"
-	_, err := r.DB.Exec(query, user.Name, user.Email, user.UpdatedAt, user.ID)
+	result, err := r.DB.Exec(query, user.Name, user.Email, user.UpdatedAt, user.ID)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected != 1 {
+		return domain.ErrRowsAffected
 	}
 
 	return nil
 }
 
 func (r *mysqlUserRepository) Delete(id int) error {
-	query := "DELETE FROM users WHERE id = ?"
-	_, err := r.DB.Exec(query, id)
+	currentTime := time.Now().UTC()
+	query := "UPDATE users SET deleted_at = ? WHERE id = ?"
+	result, err := r.DB.Exec(query, currentTime, id)
 	if err != nil {
 		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected != 1 {
+		return domain.ErrRowsAffected
 	}
 
 	return nil

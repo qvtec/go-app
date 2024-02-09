@@ -2,6 +2,8 @@ FROM golang:1.20-alpine
 
 RUN apk update &&  apk add git
 RUN go install github.com/cosmtrek/air@v1.44.0
+RUN go install github.com/vektra/mockery/v2@v2.32.0
+RUN go install -tags 'mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
 WORKDIR /app
 

@@ -13,39 +13,11 @@ import (
 
 	"github.com/qvtec/go-app/internal/delivery/http/handler"
 	"github.com/qvtec/go-app/internal/domain"
+	"github.com/qvtec/go-app/mocks"
 )
 
-type mockUserUseCase struct {
-	mock.Mock
-}
-
-func (m *mockUserUseCase) GetAll() ([]*domain.User, error) {
-	args := m.Called()
-	return args.Get(0).([]*domain.User), args.Error(1)
-}
-
-func (m *mockUserUseCase) Create(user *domain.User) error {
-	args := m.Called(user)
-	return args.Error(0)
-}
-
-func (m *mockUserUseCase) GetByID(id int) (*domain.User, error) {
-	args := m.Called(id)
-	return args.Get(0).(*domain.User), args.Error(1)
-}
-
-func (m *mockUserUseCase) Update(user *domain.User) error {
-	args := m.Called(user)
-	return args.Error(0)
-}
-
-func (m *mockUserUseCase) Delete(id int) error {
-	args := m.Called(id)
-	return args.Error(0)
-}
-
-func TestUserHandler_GetAll(t *testing.T) {
-	mockUseCase := new(mockUserUseCase)
+func setupMock() (*mocks.UserUseCase, []*domain.User) {
+	mockUseCase := new(mocks.UserUseCase)
 
 	mockUsers := []*domain.User{
 		{
@@ -59,126 +31,266 @@ func TestUserHandler_GetAll(t *testing.T) {
 			Email: "jane@example.com",
 		},
 	}
-	mockUseCase.On("GetAll").Return(mockUsers, nil)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
+	return mockUseCase, mockUsers
+}
 
-	userHandler := handler.NewUserHandler(mockUseCase)
+func TestUserHandler_GetAll(t *testing.T) {
+	mockUseCase, mockUsers := setupMock()
 
-	// GetAll
-	userHandler.GetAll(c)
+	t.Run("Success", func(t *testing.T) {
+		mockUseCase.On("GetAll").Return(mockUsers, nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "john@example.com")
-	assert.Contains(t, w.Body.String(), "jane@example.com")
-	// assert.JSONEq(t, `[{"ID":1,"Name":"John Doe","Email":"john@example.com"},{"ID":2,"Name":"Jane Smith","Email":"jane@example.com"}]`, w.Body.String())
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
 
-	mockUseCase.AssertExpectations(t)
+		userHandler.GetAll(c)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"ID":1,"Name":"John Doe","Email":"john@example.com"`)
+		assert.Contains(t, w.Body.String(), `"ID":2,"Name":"Jane Smith","Email":"jane@example.com"`)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockUseCase.On("GetAll").Return(nil, errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+
+		userHandler.GetAll(c)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		expectedResponse := `{"error": "Failed to get users"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
 }
 
 func TestUserHandler_Create(t *testing.T) {
-	mockUseCase := new(mockUserUseCase)
+	mockUseCase, _ := setupMock()
 
-	mockUser := &domain.User{
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockUseCase.On("Create", mockUser).Return(nil)
+	requestBody := `{"id": 1, "name": "Test User"}`
+	reader := strings.NewReader(requestBody)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{"Name":"John Doe","Email":"john@example.com"}`))
-	c.Request.Header.Set("Content-Type", "application/json")
+	t.Run("Success", func(t *testing.T) {
+		mockUseCase.On("Create", mock.Anything).Return(nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	userHandler := handler.NewUserHandler(mockUseCase)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPost, "/users", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
 
-	// Create
-	userHandler.Create(c)
+		userHandler.Create(c)
+		assert.Equal(t, http.StatusCreated, w.Code)
+		expectedResponse := `{"message": "User created successfully"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
 
-	assert.Equal(t, http.StatusCreated, w.Code)
-	assert.JSONEq(t, `{"message":"User created successfully"}`, w.Body.String())
+	t.Run("BadRequest", func(t *testing.T) {
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	mockUseCase.AssertExpectations(t)
+		requestBodyInvalid := `Invalid Request Body`
+		reader := strings.NewReader(requestBodyInvalid)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPost, "/users", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		userHandler.Create(c)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockUseCase.On("Create", mock.Anything).Return(errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPost, "/users", strings.NewReader(`{"Name":"John Doe","Email":"john@example.com"}`))
+		c.Request.Header.Set("Content-Type", "application/json")
+
+		userHandler.Create(c)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		expectedResponse := `{"error": "Failed to create user"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
 }
 
 func TestUserHandler_Get(t *testing.T) {
-	mockUseCase := new(mockUserUseCase)
+	mockUseCase, mockUsers := setupMock()
+	mockUser := mockUsers[0]
 
-	mockUser := &domain.User{
-		ID:    1,
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockUseCase.On("GetByID", mockUser.ID).Return(mockUser, nil)
-	mockUseCase.On("GetByID", 100).Return(nil, errors.New("user not found"))
+	t.Run("Success", func(t *testing.T) {
+		mockUseCase.On("GetByID", mock.Anything).Return(mockUser, nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
 
-	userHandler := handler.NewUserHandler(mockUseCase)
+		userHandler.Get(c)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Contains(t, w.Body.String(), `"ID":1,"Name":"John Doe","Email":"john@example.com"`)
+	})
 
-	// Get
-	userHandler.Get(c)
+	t.Run("BadRequest", func(t *testing.T) {
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), "john@example.com")
-	// assert.JSONEq(t, `{"user":{"ID":1,"Name":"John Doe","Email":"john@example.com"}}`, w.Body.String())
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "invalid"}}
 
-	// w = httptest.NewRecorder()
-	// c, _ = gin.CreateTestContext(w)
-	// c.Params = []gin.Param{{Key: "id", Value: "100"}}
+		userHandler.Get(c)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		// {"error":"Invalid ID"}
+	})
 
-	// userHandler.Get(c)
+	t.Run("UserNotFound", func(t *testing.T) {
+		mockUseCase.On("GetByID", mock.Anything).Return(nil, nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	// assert.Equal(t, http.StatusNotFound, w.Code)
-	// assert.JSONEq(t, `{"error":"User not found"}`, w.Body.String())
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "100"}}
 
-	// mockUseCase.AssertExpectations(t)
+		userHandler.Get(c)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.JSONEq(t, `{"error": "User not found"}`, w.Body.String())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockUseCase.On("GetByID", mock.Anything).Return(nil, errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "100"}}
+
+		userHandler.Get(c)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.JSONEq(t, `{"error": "Failed to get user"}`, w.Body.String())
+	})
 }
 
 func TestUserHandler_Update(t *testing.T) {
-	mockUseCase := new(mockUserUseCase)
+	mockUseCase, _ := setupMock()
 
-	mockUser := &domain.User{
-		ID:    1,
-		Name:  "John Doe",
-		Email: "john@example.com",
-	}
-	mockUseCase.On("Update", mockUser).Return(nil)
+	t.Run("Success", func(t *testing.T) {
+		mockUseCase.On("Update", mock.Anything).Return(nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest(http.MethodPut, "/users/1", strings.NewReader(`{"Name":"John Doe","Email":"john@example.com"}`))
-	c.Request.Header.Set("Content-Type", "application/json")
-	c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		requestBody := `{"name": "Test User"}`
+		reader := strings.NewReader(requestBody)
 
-	userHandler := handler.NewUserHandler(mockUseCase)
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPut, "/users/1", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
 
-	// Update
-	userHandler.Update(c)
+		userHandler.Update(c)
+		assert.Equal(t, http.StatusOK, w.Code)
+		expectedResponse := `{"message":"User updated successfully"}`
+		assert.Equal(t, expectedResponse, w.Body.String())
+	})
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.JSONEq(t, `{"message":"User updated successfully"}`, w.Body.String())
+	t.Run("BadRequestId", func(t *testing.T) {
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		requestBody := `{"name": "Test User"}`
+		reader := strings.NewReader(requestBody)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPut, "/users/1", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Params = []gin.Param{{Key: "id", Value: "Invalid"}}
+
+		userHandler.Update(c)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		expectedResponse := `{"error": "Invalid user ID"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
+
+	t.Run("BadRequestBody", func(t *testing.T) {
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		requestBody := `{"Invalid": "Test User"`
+		reader := strings.NewReader(requestBody)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPut, "/users/1", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+
+		userHandler.Update(c)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		expectedResponse := `{"error": "Invalid request body"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockUseCase.On("Update", mock.Anything).Return(errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		requestBody := `{"name": "Test User"}`
+		reader := strings.NewReader(requestBody)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request = httptest.NewRequest(http.MethodPut, "/users/1", reader)
+		c.Request.Header.Set("Content-Type", "application/json")
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+
+		userHandler.Update(c)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		expectedResponse := `{"error": "Failed to update user"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
 }
 
 func TestUserHandler_Delete(t *testing.T) {
-	mockUseCase := new(mockUserUseCase)
+	mockUseCase, _ := setupMock()
 
-	mockUseCase.On("Delete", 1).Return(nil)
+	t.Run("Success", func(t *testing.T) {
+		mockUseCase.On("Delete", 1).Return(nil).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Params = []gin.Param{{Key: "id", Value: "1"}}
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
 
-	userHandler := handler.NewUserHandler(mockUseCase)
+		userHandler.Delete(c)
+		assert.Equal(t, http.StatusOK, w.Code)
+		expectedResponse := `{"message": "User deleted successfully"}`
+		assert.JSONEq(t, expectedResponse, w.Body.String())
+	})
 
-	// Delete
-	userHandler.Delete(c)
+	t.Run("BadRequest", func(t *testing.T) {
+		mockUseCase.On("Delete", mock.Anything).Return(errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.JSONEq(t, `{"message":"User deleted successfully"}`, w.Body.String())
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "Invalid", Value: "1"}}
 
-	mockUseCase.AssertExpectations(t)
+		userHandler.Delete(c)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		assert.JSONEq(t, `{"error":"Invalid user ID"}`, w.Body.String())
+	})
+
+	t.Run("Error", func(t *testing.T) {
+		mockUseCase.On("Delete", mock.Anything).Return(errors.New("error")).Once()
+		userHandler := handler.NewUserHandler(mockUseCase)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = []gin.Param{{Key: "id", Value: "1"}}
+
+		userHandler.Delete(c)
+		assert.Equal(t, http.StatusInternalServerError, w.Code)
+		assert.JSONEq(t, `{"error": "Failed to delete user"}`, w.Body.String())
+	})
 }
