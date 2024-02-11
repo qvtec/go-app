@@ -24,9 +24,15 @@ func main() {
 	userUseCase := usecase.NewUserUseCase(userRepository)
 	userHandler := httpHandler.NewUserHandler(userUseCase)
 
+	authRepository := repository.NewAuthRepository(db)
+	authUseCase := usecase.NewAuthUseCase(authRepository)
+	authHandler := httpHandler.NewAuthHandler(authUseCase)
+
 	router := gin.Default()
-	httpRouter.SetupUserRouter(router, userHandler)
+	v1 := router.Group("/api/v1")
+	httpRouter.SetupUserRouter(v1, userHandler)
+	httpRouter.SetupAuthRouter(v1, authHandler)
 
 	port := os.Getenv("SERVER_PORT")
-	http.ListenAndServe(":" + port, router)
+	http.ListenAndServe(":"+port, router)
 }

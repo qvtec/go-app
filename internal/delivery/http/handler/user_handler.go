@@ -20,7 +20,6 @@ func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler {
 	}
 }
 
-
 func (h *UserHandler) GetAll(c *gin.Context) {
 	users, err := h.userUseCase.GetAll()
 	if err != nil {
@@ -30,7 +29,6 @@ func (h *UserHandler) GetAll(c *gin.Context) {
 	c.JSON(http.StatusOK, users)
 }
 
-
 func (h *UserHandler) Create(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -38,8 +36,12 @@ func (h *UserHandler) Create(c *gin.Context) {
 		return
 	}
 
-	err := h.userUseCase.Create(&user)
-	if err != nil {
+	if err := user.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.userUseCase.Create(&user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
 		return
 	}
@@ -47,8 +49,7 @@ func (h *UserHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})
 }
 
-
-func (h *UserHandler) Get(c *gin.Context) {
+func (h *UserHandler) GetByID(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
@@ -69,7 +70,6 @@ func (h *UserHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user})
 }
 
-
 func (h *UserHandler) Update(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -83,16 +83,19 @@ func (h *UserHandler) Update(c *gin.Context) {
 		return
 	}
 
+	if err := updateUser.Validate(); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	updateUser.ID = id
-	err = h.userUseCase.Update(&updateUser)
-	if err != nil {
+	if err := h.userUseCase.Update(&updateUser); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})
 }
-
 
 func (h *UserHandler) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -109,4 +112,3 @@ func (h *UserHandler) Delete(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
 }
-

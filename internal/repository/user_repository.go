@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/qvtec/go-app/internal/domain"
+	"github.com/qvtec/go-app/pkg/crypto"
 )
 
 type UserRepository interface {
@@ -15,17 +16,15 @@ type UserRepository interface {
 	Delete(id int) error
 }
 
-type mysqlUserRepository struct {
+type MySQLUserRepository struct {
 	DB *sql.DB
 }
 
 func NewUserRepository(db *sql.DB) UserRepository {
-	return &mysqlUserRepository{
-		DB: db,
-	}
+	return &MySQLUserRepository{DB: db}
 }
 
-func (r *mysqlUserRepository) GetAll() ([]*domain.User, error) {
+func (r *MySQLUserRepository) GetAll() ([]*domain.User, error) {
 	query := "SELECT id, name, email FROM users"
 	rows, err := r.DB.Query(query)
 	if err != nil {
@@ -50,9 +49,14 @@ func (r *mysqlUserRepository) GetAll() ([]*domain.User, error) {
 	return users, nil
 }
 
-func (r *mysqlUserRepository) Create(user *domain.User) error {
-	query := "INSERT INTO users (name, email) VALUES (?, ?)"
-	result, err := r.DB.Exec(query, user.Name, user.Email)
+func (r *MySQLUserRepository) Create(user *domain.User) error {
+	query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
+	hashedPassword, err := crypto.HashPassword(user.Password)
+	if err != nil {
+		return err
+	}
+
+	result, err := r.DB.Exec(query, user.Name, user.Email, hashedPassword)
 	if err != nil {
 		return err
 	}
@@ -63,7 +67,7 @@ func (r *mysqlUserRepository) Create(user *domain.User) error {
 	return nil
 }
 
-func (r *mysqlUserRepository) GetByID(id int) (*domain.User, error) {
+func (r *MySQLUserRepository) GetByID(id int) (*domain.User, error) {
 	query := "SELECT * FROM users WHERE id = ?"
 	row := r.DB.QueryRow(query, id)
 
@@ -73,6 +77,7 @@ func (r *mysqlUserRepository) GetByID(id int) (*domain.User, error) {
 		&user.ID,
 		&user.Name,
 		&user.Email,
+		&user.Password,
 		&createdAt,
 		&updatedAt,
 		&deletedAt,
@@ -93,7 +98,7 @@ func (r *mysqlUserRepository) GetByID(id int) (*domain.User, error) {
 	return user, nil
 }
 
-func (r *mysqlUserRepository) Update(user *domain.User) error {
+func (r *MySQLUserRepository) Update(user *domain.User) error {
 	currentTime := time.Now().UTC()
 	user.UpdatedAt = currentTime
 	query := "UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?"
@@ -110,7 +115,7 @@ func (r *mysqlUserRepository) Update(user *domain.User) error {
 	return nil
 }
 
-func (r *mysqlUserRepository) Delete(id int) error {
+func (r *MySQLUserRepository) Delete(id int) error {
 	currentTime := time.Now().UTC()
 	query := "UPDATE users SET deleted_at = ? WHERE id = ?"
 	result, err := r.DB.Exec(query, currentTime, id)

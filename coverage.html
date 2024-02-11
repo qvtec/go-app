@@ -1,0 +1,636 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>handler: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/qvtec/go-app/internal/delivery/http/handler/auth_handler.go (0.0%)</option>
+				
+				<option value="file1">github.com/qvtec/go-app/internal/delivery/http/handler/user_handler.go (88.9%)</option>
+				
+				<option value="file2">github.com/qvtec/go-app/internal/repository/auth_repository.go (0.0%)</option>
+				
+				<option value="file3">github.com/qvtec/go-app/internal/repository/user_repository.go (93.2%)</option>
+				
+				<option value="file4">github.com/qvtec/go-app/internal/usecase/auth_usecase.go (0.0%)</option>
+				
+				<option value="file5">github.com/qvtec/go-app/internal/usecase/user_usecase.go (100.0%)</option>
+				
+				<option value="file6">github.com/qvtec/go-app/pkg/db/mysql.go (92.3%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package handler
+
+import (
+        "net/http"
+
+        "github.com/gin-gonic/gin"
+        "github.com/qvtec/go-app/internal/usecase"
+)
+
+type AuthHandler struct {
+        authUseCase usecase.AuthUseCase
+}
+
+func NewAuthHandler(authUseCase usecase.AuthUseCase) *AuthHandler <span class="cov0" title="0">{
+        return &amp;AuthHandler{authUseCase: authUseCase}
+}</span>
+
+func (h *AuthHandler) Login(c *gin.Context) <span class="cov0" title="0">{
+        var credentials struct {
+                Email    string `json:"email"`
+                Password string `json:"password"`
+        }
+        if err := c.BindJSON(&amp;credentials); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov0" title="0">auth, err := h.authUseCase.Login(credentials.Email, credentials.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+                return
+        }</span>
+
+        <span class="cov0" title="0">c.JSON(http.StatusOK, auth)</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package handler
+
+import (
+        "net/http"
+        "strconv"
+
+        "github.com/qvtec/go-app/internal/domain"
+        "github.com/qvtec/go-app/internal/usecase"
+
+        "github.com/gin-gonic/gin"
+)
+
+type UserHandler struct {
+        userUseCase usecase.UserUseCase
+}
+
+func NewUserHandler(userUseCase usecase.UserUseCase) *UserHandler <span class="cov8" title="1">{
+        return &amp;UserHandler{
+                userUseCase: userUseCase,
+        }
+}</span>
+
+func (h *UserHandler) GetAll(c *gin.Context) <span class="cov8" title="1">{
+        users, err := h.userUseCase.GetAll()
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get users"})
+                return
+        }</span>
+        <span class="cov8" title="1">c.JSON(http.StatusOK, users)</span>
+}
+
+func (h *UserHandler) Create(c *gin.Context) <span class="cov8" title="1">{
+        var user domain.User
+        if err := c.ShouldBindJSON(&amp;user); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := user.Validate(); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := h.userUseCase.Create(&amp;user); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusCreated, gin.H{"message": "User created successfully"})</span>
+}
+
+func (h *UserHandler) GetByID(c *gin.Context) <span class="cov8" title="1">{
+        id, err := strconv.Atoi(c.Param("id"))
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">user, err := h.userUseCase.GetByID(id)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get user"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if user == nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{"user": user})</span>
+}
+
+func (h *UserHandler) Update(c *gin.Context) <span class="cov8" title="1">{
+        id, err := strconv.Atoi(c.Param("id"))
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">var updateUser domain.User
+        if err := c.ShouldBindJSON(&amp;updateUser); err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">if err := updateUser.Validate(); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+                return
+        }</span>
+
+        <span class="cov8" title="1">updateUser.ID = id
+        if err := h.userUseCase.Update(&amp;updateUser); err != nil </span><span class="cov0" title="0">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{"message": "User updated successfully"})</span>
+}
+
+func (h *UserHandler) Delete(c *gin.Context) <span class="cov8" title="1">{
+        id, err := strconv.Atoi(c.Param("id"))
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">err = h.userUseCase.Delete(id)
+        if err != nil </span><span class="cov8" title="1">{
+                c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+                return
+        }</span>
+
+        <span class="cov8" title="1">c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package repository
+
+import (
+        "database/sql"
+        "time"
+
+        "github.com/qvtec/go-app/internal/domain"
+        "github.com/qvtec/go-app/pkg/crypto"
+)
+
+type AuthRepository interface {
+        GetUserByEmail(email string) (*domain.User, error)
+        GetPasswordByEmail(email string) (string, error)
+        UpdatePassword(email, password string) error
+}
+
+type MySQLAuthRepository struct {
+        DB *sql.DB
+}
+
+func NewAuthRepository(db *sql.DB) AuthRepository <span class="cov0" title="0">{
+        return &amp;MySQLAuthRepository{DB: db}
+}</span>
+
+func (r *MySQLAuthRepository) GetUserByEmail(email string) (*domain.User, error) <span class="cov0" title="0">{
+        query := "SELECT * FROM users WHERE email = ? AND deleted_at is NULL"
+        row := r.DB.QueryRow(query, email)
+
+        user := &amp;domain.User{}
+        var createdAt, updatedAt, deletedAt sql.NullString
+        err := row.Scan(
+                &amp;user.ID,
+                &amp;user.Name,
+                &amp;user.Email,
+                &amp;user.Password,
+                &amp;createdAt,
+                &amp;updatedAt,
+                &amp;deletedAt,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        return nil, domain.ErrUserNotFound
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov0" title="0">return user, nil</span>
+}
+
+func (r *MySQLAuthRepository) GetPasswordByEmail(email string) (string, error) <span class="cov0" title="0">{
+        query := "SELECT password FROM users WHERE email = ? AND deleted_at is NULL"
+        row := r.DB.QueryRow(query, email)
+
+        user := &amp;domain.User{}
+        err := row.Scan(
+                &amp;user.Password,
+        )
+        if err != nil </span><span class="cov0" title="0">{
+                if err == sql.ErrNoRows </span><span class="cov0" title="0">{
+                        return "", domain.ErrUserNotFound
+                }</span>
+                <span class="cov0" title="0">return "", err</span>
+        }
+
+        <span class="cov0" title="0">return user.Password, nil</span>
+}
+
+func (r *MySQLAuthRepository) UpdatePassword(email, newPassword string) error <span class="cov0" title="0">{
+        currentTime := time.Now().UTC()
+        hashedPassword, err := crypto.HashPassword(newPassword)
+
+        query := "UPDATE users SET password = ?, updated_at = ? WHERE email = ?"
+        result, err := r.DB.Exec(query, hashedPassword, currentTime, email)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov0" title="0">rowsAffected, err := result.RowsAffected()
+        if rowsAffected != 1 </span><span class="cov0" title="0">{
+                return domain.ErrRowsAffected
+        }</span>
+
+        <span class="cov0" title="0">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package repository
+
+import (
+        "database/sql"
+        "time"
+
+        "github.com/qvtec/go-app/internal/domain"
+        "github.com/qvtec/go-app/pkg/crypto"
+)
+
+type UserRepository interface {
+        GetAll() ([]*domain.User, error)
+        GetByID(id int) (*domain.User, error)
+        Create(user *domain.User) error
+        Update(user *domain.User) error
+        Delete(id int) error
+}
+
+type MySQLUserRepository struct {
+        DB *sql.DB
+}
+
+func NewUserRepository(db *sql.DB) UserRepository <span class="cov8" title="1">{
+        return &amp;MySQLUserRepository{DB: db}
+}</span>
+
+func (r *MySQLUserRepository) GetAll() ([]*domain.User, error) <span class="cov8" title="1">{
+        query := "SELECT id, name, email FROM users"
+        rows, err := r.DB.Query(query)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">defer rows.Close()
+
+        users := []*domain.User{}
+        for rows.Next() </span><span class="cov8" title="1">{
+                user := &amp;domain.User{}
+                err := rows.Scan(&amp;user.ID, &amp;user.Name, &amp;user.Email)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov8" title="1">users = append(users, user)</span>
+        }
+
+        <span class="cov8" title="1">if err := rows.Err(); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return users, nil</span>
+}
+
+func (r *MySQLUserRepository) Create(user *domain.User) error <span class="cov8" title="1">{
+        query := "INSERT INTO users (name, email, password) VALUES (?, ?, ?)"
+        hashedPassword, err := crypto.HashPassword(user.Password)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">result, err := r.DB.Exec(query, user.Name, user.Email, hashedPassword)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">userID, err := result.LastInsertId()
+        user.ID = int(userID)
+
+        return nil</span>
+}
+
+func (r *MySQLUserRepository) GetByID(id int) (*domain.User, error) <span class="cov8" title="1">{
+        query := "SELECT * FROM users WHERE id = ?"
+        row := r.DB.QueryRow(query, id)
+
+        user := &amp;domain.User{}
+        var createdAt, updatedAt, deletedAt sql.NullString
+        err := row.Scan(
+                &amp;user.ID,
+                &amp;user.Name,
+                &amp;user.Email,
+                &amp;user.Password,
+                &amp;createdAt,
+                &amp;updatedAt,
+                &amp;deletedAt,
+        )
+        if err != nil </span><span class="cov8" title="1">{
+                if err == sql.ErrNoRows </span><span class="cov8" title="1">{
+                        return nil, domain.ErrUserNotFound
+                }</span>
+                <span class="cov0" title="0">return nil, err</span>
+        }
+
+        <span class="cov8" title="1">user.CreatedAt, _ = time.Parse("2006-01-02 15:04:05", createdAt.String)
+        user.UpdatedAt, _ = time.Parse("2006-01-02 15:04:05", updatedAt.String)
+        if deletedAt.Valid </span><span class="cov8" title="1">{
+                user.DeletedAt, _ = time.Parse("2006-01-02 15:04:05", deletedAt.String)
+        }</span>
+
+        <span class="cov8" title="1">return user, nil</span>
+}
+
+func (r *MySQLUserRepository) Update(user *domain.User) error <span class="cov8" title="1">{
+        currentTime := time.Now().UTC()
+        user.UpdatedAt = currentTime
+        query := "UPDATE users SET name = ?, email = ?, updated_at = ? WHERE id = ?"
+        result, err := r.DB.Exec(query, user.Name, user.Email, user.UpdatedAt, user.ID)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">rowsAffected, err := result.RowsAffected()
+        if rowsAffected != 1 </span><span class="cov8" title="1">{
+                return domain.ErrRowsAffected
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (r *MySQLUserRepository) Delete(id int) error <span class="cov8" title="1">{
+        currentTime := time.Now().UTC()
+        query := "UPDATE users SET deleted_at = ? WHERE id = ?"
+        result, err := r.DB.Exec(query, currentTime, id)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">rowsAffected, err := result.RowsAffected()
+        if rowsAffected != 1 </span><span class="cov8" title="1">{
+                return domain.ErrRowsAffected
+        }</span>
+
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package usecase
+
+import (
+        "os"
+        "time"
+
+        "github.com/qvtec/go-app/internal/repository"
+        "github.com/qvtec/go-app/pkg/crypto"
+        "github.com/qvtec/go-app/pkg/jwt"
+)
+
+type AuthUseCase interface {
+        Login(email string, password string) (string, error)
+}
+
+type authUseCase struct {
+        authRepository repository.AuthRepository
+}
+
+func NewAuthUseCase(authRepository repository.AuthRepository) AuthUseCase <span class="cov0" title="0">{
+        return &amp;authUseCase{
+                authRepository: authRepository,
+        }
+}</span>
+
+func (uc *authUseCase) Login(email, password string) (string, error) <span class="cov0" title="0">{
+        user, err := uc.authRepository.GetUserByEmail(email)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">if err := crypto.CheckPasswordHash(password, user.Password); err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">jwtManager := jwt.NewJWTManager(os.Getenv("JWT_KEY"))
+
+        claims := jwt.MapClaims{
+                "user_id": user.ID,
+                "exp":     time.Now().Add(time.Hour * 24).Unix(),
+        }
+
+        tokenString, err := jwtManager.GenerateToken(claims)
+        if err != nil </span><span class="cov0" title="0">{
+                return "", err
+        }</span>
+
+        <span class="cov0" title="0">return tokenString, nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package usecase
+
+import (
+        "github.com/qvtec/go-app/internal/domain"
+        "github.com/qvtec/go-app/internal/repository"
+)
+
+type UserUseCase interface {
+        GetAll() ([]*domain.User, error)
+        Create(user *domain.User) error
+        GetByID(id int) (*domain.User, error)
+        Update(user *domain.User) error
+        Delete(id int) error
+}
+
+type userUseCase struct {
+        userRepository repository.UserRepository
+}
+
+func NewUserUseCase(userRepository repository.UserRepository) UserUseCase <span class="cov8" title="1">{
+        return &amp;userUseCase{
+                userRepository: userRepository,
+        }
+}</span>
+
+func (uc *userUseCase) GetAll() ([]*domain.User, error) <span class="cov8" title="1">{
+        users, err := uc.userRepository.GetAll()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return users, nil</span>
+}
+
+func (uc *userUseCase) Create(user *domain.User) error <span class="cov8" title="1">{
+        err := uc.userRepository.Create(user)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (uc *userUseCase) GetByID(id int) (*domain.User, error) <span class="cov8" title="1">{
+        user, err := uc.userRepository.GetByID(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov8" title="1">return user, nil</span>
+}
+
+func (uc *userUseCase) Update(user *domain.User) error <span class="cov8" title="1">{
+        err := uc.userRepository.Update(user)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+
+func (uc *userUseCase) Delete(id int) error <span class="cov8" title="1">{
+        err := uc.userRepository.Delete(id)
+        if err != nil </span><span class="cov8" title="1">{
+                return err
+        }</span>
+        <span class="cov8" title="1">return nil</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package db
+
+import (
+        "database/sql"
+        "fmt"
+        "os"
+
+        _ "github.com/go-sql-driver/mysql"
+)
+
+func NewMySQLDB() (*sql.DB, error) <span class="cov8" title="1">{
+        host := os.Getenv("DATABASE_HOST")
+        port := os.Getenv("DATABASE_PORT")
+        dbName := os.Getenv("DATABASE_NAME")
+        user := os.Getenv("DATABASE_USER")
+        password := os.Getenv("DATABASE_PASSWORD")
+
+        DSN := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", user, password, host, port, dbName)
+
+        db, err := sql.Open("mysql", DSN)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">err = db.Ping()
+        if err != nil </span><span class="cov8" title="1">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">return db, nil</span>
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

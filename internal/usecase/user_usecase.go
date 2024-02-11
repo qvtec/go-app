@@ -24,7 +24,6 @@ func NewUserUseCase(userRepository repository.UserRepository) UserUseCase {
 }
 
 func (uc *userUseCase) GetAll() ([]*domain.User, error) {
-	// @todo validation
 	users, err := uc.userRepository.GetAll()
 	if err != nil {
 		return nil, err
@@ -33,7 +32,6 @@ func (uc *userUseCase) GetAll() ([]*domain.User, error) {
 }
 
 func (uc *userUseCase) Create(user *domain.User) error {
-	// @todo validation
 	err := uc.userRepository.Create(user)
 	if err != nil {
 		return err
@@ -42,7 +40,6 @@ func (uc *userUseCase) Create(user *domain.User) error {
 }
 
 func (uc *userUseCase) GetByID(id int) (*domain.User, error) {
-	// @todo validation
 	user, err := uc.userRepository.GetByID(id)
 	if err != nil {
 		return nil, err
@@ -51,7 +48,6 @@ func (uc *userUseCase) GetByID(id int) (*domain.User, error) {
 }
 
 func (uc *userUseCase) Update(user *domain.User) error {
-	// @todo validation
 	err := uc.userRepository.Update(user)
 	if err != nil {
 		return err
@@ -60,7 +56,6 @@ func (uc *userUseCase) Update(user *domain.User) error {
 }
 
 func (uc *userUseCase) Delete(id int) error {
-	// @todo validation
 	err := uc.userRepository.Delete(id)
 	if err != nil {
 		return err
